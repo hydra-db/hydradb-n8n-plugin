@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "description": "n8n community node for HydraDB: ingest knowledge and recall context.",
   "keywords": ["n8n-community-node-package", "hydradb", "memory", "retrieval"],
-  "license": "UNLICENSED",
-  "private": true,
+  "license": "Apache-2.0",
   "author": "HydraDB <support@hydradb.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hydra-db/hydradb-n8n-plugin.git"
+  },
+  "files": ["dist"],
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit"
