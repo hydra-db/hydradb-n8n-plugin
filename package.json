@@ -1,0 +1,25 @@
+{
+  "name": "n8n-nodes-hydradb",
+  "version": "0.1.0",
+  "description": "n8n community node for HydraDB: ingest knowledge and recall context.",
+  "keywords": ["n8n-community-node-package", "hydradb", "memory", "retrieval"],
+  "license": "UNLICENSED",
+  "private": true,
+  "author": "HydraDB <support@hydradb.com>",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": ["dist/credentials/HydraDbApi.credentials.js"],
+    "nodes": ["dist/nodes/HydraDb/HydraDb.node.js"]
+  },
+  "devDependencies": {
+    "n8n-workflow": "*",
+    "typescript": "^5.5.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
