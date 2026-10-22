@@ -1,9 +1,9 @@
 {
   "name": "n8n-nodes-hydradb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "n8n community node for HydraDB: ingest knowledge and recall context.",
   "keywords": ["n8n-community-node-package", "hydradb", "memory", "retrieval"],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": "HydraDB <support@hydradb.com>",
   "repository": {
     "type": "git",
