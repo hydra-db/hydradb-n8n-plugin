@@ -1,17 +1,21 @@
 {
   "name": "n8n-nodes-hydradb",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "n8n community node for HydraDB: ingest knowledge and recall context.",
   "keywords": ["n8n-community-node-package", "hydradb", "memory", "retrieval"],
   "license": "MIT",
-  "author": "HydraDB <cloud@hydradb.com>",
+  "homepage": "https://hydradb.com",
+  "author": {
+    "name": "HydraDB",
+    "email": "cloud@hydradb.com"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hydra-db/hydradb-n8n-plugin.git"
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp nodes/HydraDb/hydradb.svg dist/nodes/HydraDb/hydradb.svg && cp nodes/HydraDb/hydradb.svg dist/credentials/hydradb.svg",
     "lint": "tsc --noEmit"
   },
   "n8n": {

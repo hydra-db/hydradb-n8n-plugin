@@ -1,5 +1,6 @@
 import type {
 	IAuthenticateGeneric,
+	Icon,
 	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
@@ -13,6 +14,8 @@ export class HydraDbApi implements ICredentialType {
 	name = 'hydraDbApi';
 
 	displayName = 'HydraDB API';
+
+	icon: Icon = { light: 'file:hydradb.svg', dark: 'file:hydradb.svg' };
 
 	documentationUrl = 'https://docs.hydradb.com/';
 
