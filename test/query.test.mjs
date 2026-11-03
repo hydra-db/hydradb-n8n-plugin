@@ -1,9 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HydraDb } from '../nodes/HydraDb/HydraDb.node.ts';
+import { HydraDb } from '../dist/nodes/HydraDb/HydraDb.node.js';
 const data = { chunks: [{ chunk_uuid: 'c1', chunk_content: 'hello', chunk_metadata: { row: 2 } }], tabular_data: { status: 'ok', records: [{ n: 1 }] }, temporal_facts: [{ observed_at: 123 }], temporal_duration: { from: { observed_at: 123 } } };
 const meta = { warnings: [{ code: 'skipped', collections: ['private'] }] };
 async function run(payload) { let request; const params = { operation:'query', query:'q', kind:'knowledge', maxResults:6, includeTableSql:true, tableLimit:5 }; const ctx = { getInputData: () => [{}], getCredentials: async () => ({database:'db'}), getNodeParameter: (k, i, fallback) => params[k] ?? fallback, helpers: {httpRequestWithAuthentication: async (auth, r) => { request = r; return payload; }} }; const result = await new HydraDb().execute.call(ctx); return {request, records: result[0]}; }
 test('query sends options and retains result metadata', async () => { const {request, records} = await run({data, meta}); assert.equal(request.body.include_table_sql, true); assert.equal(request.body.table_limit, 5); assert.deepEqual(records[0].json.chunk_metadata, data.chunks[0].chunk_metadata); assert.deepEqual(records[0].json.tabular_data, data.tabular_data); assert.deepEqual(records[0].json.temporal_facts, data.temporal_facts); assert.deepEqual(records[0].json.temporal_duration, data.temporal_duration); assert.deepEqual(records[0].json.warnings, meta.warnings); });
 test('table-only response is accessible', async () => { const {records} = await run({data: {...data, chunks: []}, meta}); assert.deepEqual(records[0].json.tabular_data, data.tabular_data); });
 test('empty response preserves empty output', async () => { const {records} = await run({data: {chunks: []}}); assert.deepEqual(records, []); });
+test('downstream receives a metadata-only warning item, paired to its input', async () => {
+ const {records} = await run({data: {chunks: []}, meta});
+ const downstream = records.map(({json, pairedItem}) => ({text: json.text, warnings: json.warnings, sourceItem: pairedItem.item}));
+ assert.deepEqual(downstream, [{text: '', warnings: meta.warnings, sourceItem: 0}]);
+});
+test('downstream receives a table-only item with table rows and input pairing', async () => {
+ const table = {status: 'ok', records: [{total: 42}]};
+ const {records} = await run({data: {chunks: [], tabular_data: table}});
+ const downstream = records.map(({json, pairedItem}) => ({text: json.text, total: json.tabular_data.records[0].total, sourceItem: pairedItem.item}));
+ assert.deepEqual(downstream, [{text: '', total: 42, sourceItem: 0}]);
+});
