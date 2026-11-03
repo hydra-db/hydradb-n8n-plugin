@@ -120,6 +120,22 @@ export class HydraDb implements INodeType {
 				displayOptions: { show: { operation: ['query'] } },
 			},
 			{
+				displayName: 'Include Table SQL',
+				name: 'includeTableSql',
+				type: 'boolean',
+				default: false,
+				displayOptions: { show: { operation: ['query'] } },
+			},
+			{
+				displayName: 'Table Row Limit',
+				name: 'tableLimit',
+				type: 'number',
+				default: 0,
+				typeOptions: { minValue: 0, maxValue: 100 },
+				description: 'Maximum rows from 1 to 100; 0 uses the API default',
+				displayOptions: { show: { operation: ['query'] } },
+			},
+			{
 				displayName: 'Text',
 				name: 'text',
 				type: 'string',
@@ -164,6 +180,10 @@ export class HydraDb implements INodeType {
 					max_results: this.getNodeParameter('maxResults', i) as number,
 					graph_context: true,
 				};
+				const includeTableSql = this.getNodeParameter('includeTableSql', i, false) as boolean;
+				const tableLimit = this.getNodeParameter('tableLimit', i, 0) as number;
+				if (includeTableSql) body.include_table_sql = true;
+				if (tableLimit) body.table_limit = tableLimit;
 				const response = (await this.helpers.httpRequestWithAuthentication.call(
 					this,
 					'hydraDbApi',
@@ -171,9 +191,16 @@ export class HydraDb implements INodeType {
 				)) as IDataObject;
 				const data = (response.data as IDataObject) || {};
 				const chunks = (data.chunks as IDataObject[]) || [];
-				for (const chunk of chunks) {
+				const extras: IDataObject = {};
+				for (const key of ['tabular_data', 'temporal_facts', 'temporal_duration', 'temporal_filter']) {
+					if (data[key] != null) extras[key] = data[key];
+				}
+				const warnings = (response.meta as IDataObject | undefined)?.warnings;
+				if (Array.isArray(warnings) && warnings.length) extras.warnings = warnings;
+				const rows = chunks.length ? chunks : (Object.keys(extras).length ? [{}] : []);
+				for (const chunk of rows) {
 					out.push({
-						json: { ...chunk, text: extractText(chunk.chunk_content ?? chunk.text) },
+						json: { ...chunk, text: extractText(chunk.chunk_content ?? chunk.text), ...extras },
 						pairedItem: { item: i },
 					});
 				}
