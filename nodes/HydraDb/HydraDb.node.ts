@@ -197,8 +197,9 @@ export class HydraDb implements INodeType {
 				}
 				const rows = chunks.length ? chunks : (Object.keys(extras).length ? [{}] : []);
 				for (const chunk of rows) {
+					const { chunk_metadata: _unsupported, ...supportedChunk } = chunk;
 					out.push({
-						json: { ...chunk, text: extractText(chunk.chunk_content ?? chunk.text), ...extras },
+						json: { ...supportedChunk, text: extractText(chunk.chunk_content ?? chunk.text), ...extras },
 						pairedItem: { item: i },
 					});
 				}

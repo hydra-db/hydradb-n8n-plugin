@@ -24,3 +24,15 @@ test('prompt-only and table-only responses are available downstream with pairing
  assert.deepEqual(table.records[0].json.tabular_data, data.tabular_data); assert.equal(table.records[0].json.text, '');
 });
 test('empty response preserves empty output', async () => { const {records} = await run({data: {chunks: []}}); assert.deepEqual(records, []); });
+test('omits injected chunk_metadata while preserving supported fields and pairing', async () => {
+ const chunk = { ...data.chunks[0], chunk_metadata: { leaked: true }, metadata: { chunk_metadata: 'valid nested key' }, source_title: 'Note', relevancy_score: 0.8 };
+ const {records} = await run({data: {...data, chunks: [chunk]}}, 2);
+ for (const [i, record] of records.entries()) {
+  assert.equal(Object.hasOwn(record.json, 'chunk_metadata'), false);
+  assert.deepEqual(record.json.metadata, chunk.metadata);
+  assert.deepEqual(record.json.additional_metadata, chunk.additional_metadata);
+  assert.equal(record.json.source_title, 'Note'); assert.equal(record.json.relevancy_score, 0.8);
+  assert.equal(record.json.text, 'hello'); assert.equal(record.json.llm_prompt, data.llm_prompt);
+  assert.deepEqual(record.json.tabular_data, data.tabular_data); assert.deepEqual(record.pairedItem, {item: i});
+ }
+});
