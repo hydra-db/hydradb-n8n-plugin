@@ -16,7 +16,9 @@
   "files": ["dist"],
   "scripts": {
     "build": "tsc && cp nodes/HydraDb/hydradb.svg dist/nodes/HydraDb/hydradb.svg && cp credentials/hydradb.svg dist/credentials/hydradb.svg",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "tsc && node --test test/*.mjs",
+    "prepublishOnly": "npm test"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,

@@ -44,3 +44,13 @@ The HydraDB node then appears in the node panel.
 
 Add the node, pick an operation, and select your HydraDB credential. Ingest
 writes a note; Query returns matching context that downstream nodes can read.
+
+### Query tables and response metadata
+
+The query action accepts optional `includeTableSql` and `tableLimit` (1–100);
+omit the limit to use the API default. Table SQL can include query literals, so
+only enable it when downstream workflow steps may receive that information.
+Query records preserve chunk `metadata` and `additional_metadata`. The response
+`llm_prompt` and optional `tabular_data` are repeated on each chunk. If there
+are no chunks, a single paired item carries these fields when present. A
+completely empty response produces no items.
