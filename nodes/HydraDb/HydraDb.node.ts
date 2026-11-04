@@ -192,11 +192,9 @@ export class HydraDb implements INodeType {
 				const data = (response.data as IDataObject) || {};
 				const chunks = (data.chunks as IDataObject[]) || [];
 				const extras: IDataObject = {};
-				for (const key of ['tabular_data', 'temporal_facts', 'temporal_duration', 'temporal_filter']) {
+				for (const key of ['llm_prompt', 'tabular_data']) {
 					if (data[key] != null) extras[key] = data[key];
 				}
-				const warnings = (response.meta as IDataObject | undefined)?.warnings;
-				if (Array.isArray(warnings) && warnings.length) extras.warnings = warnings;
 				const rows = chunks.length ? chunks : (Object.keys(extras).length ? [{}] : []);
 				for (const chunk of rows) {
 					out.push({
