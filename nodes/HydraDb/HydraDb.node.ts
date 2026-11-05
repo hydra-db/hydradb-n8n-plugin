@@ -159,7 +159,7 @@ export class HydraDb implements INodeType {
 					database,
 					collection,
 					query: this.getNodeParameter('query', i) as string,
-					kind: this.getNodeParameter('kind', i) as string,
+					type: this.getNodeParameter('kind', i) as string,
 					mode: 'fast',
 					max_results: this.getNodeParameter('maxResults', i) as number,
 					graph_context: true,
