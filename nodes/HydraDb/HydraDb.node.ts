@@ -187,7 +187,7 @@ export class HydraDb implements INodeType {
 				const form = new FormData();
 				form.append('tenant_id', database);
 				form.append('sub_tenant_id', collection);
-				form.append('kind', 'knowledge');
+				form.append('type', 'knowledge');
 				form.append('app_knowledge', JSON.stringify([item]));
 				const response = await this.helpers.httpRequestWithAuthentication.call(
 					this,
