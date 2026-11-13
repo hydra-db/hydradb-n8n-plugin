@@ -56,6 +56,7 @@ export class HydraDbApi implements ICredentialType {
 		properties: {
 			headers: {
 				Authorization: '=Bearer {{$credentials.apiKey}}',
+				'API-Version': '2',
 			},
 		},
 	};
