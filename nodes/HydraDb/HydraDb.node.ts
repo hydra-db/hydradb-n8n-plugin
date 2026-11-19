@@ -6,6 +6,7 @@ import type {
 	INodeTypeDescription,
 	NodeConnectionType,
 } from 'n8n-workflow';
+import { isUnified, layout, roots, unifiedBody } from './contract';
 
 /**
  * Extract the prose from a HydraDB content envelope.
@@ -93,6 +94,14 @@ export class HydraDb implements INodeType {
 				],
 			},
 			{
+				displayName: 'Database Layout',
+				name: 'layout',
+				type: 'options',
+				default: 'split',
+				options: [{ name: 'Split', value: 'split' }, { name: 'Unified (Rollout Preview)', value: 'unified' }],
+				description: 'Explicitly choose the database layout. Unified is not enabled in production.',
+			},
+			{
 				displayName: 'Query',
 				name: 'query',
 				type: 'string',
@@ -106,7 +115,7 @@ export class HydraDb implements INodeType {
 				name: 'kind',
 				type: 'options',
 				default: 'knowledge',
-				displayOptions: { show: { operation: ['query'] } },
+				displayOptions: { show: { operation: ['query'], layout: ['split'] } },
 				options: [
 					{ name: 'Knowledge', value: 'knowledge' },
 					{ name: 'Memory', value: 'memory' },
@@ -125,7 +134,7 @@ export class HydraDb implements INodeType {
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: '',
-				required: true,
+				required: false,
 				displayOptions: { show: { operation: ['ingest'] } },
 				description: 'Note text to store as knowledge',
 			},
@@ -135,6 +144,14 @@ export class HydraDb implements INodeType {
 				type: 'string',
 				default: 'note',
 				displayOptions: { show: { operation: ['ingest'] } },
+			},
+			{
+				displayName: 'Unified Context',
+				name: 'context',
+				type: 'json',
+				default: '',
+				displayOptions: { show: { operation: ['ingest'], layout: ['unified'] } },
+				description: 'Optional context array. When supplied, replaces Text and Title. Each item needs text XOR conversation.',
 			},
 		],
 	};
@@ -153,13 +170,14 @@ export class HydraDb implements INodeType {
 
 		for (let i = 0; i < items.length; i++) {
 			const operation = this.getNodeParameter('operation', i) as string;
+			const selectedLayout = layout(this.getNodeParameter('layout', i, 'split'));
 
 			if (operation === 'query') {
 				const body: IDataObject = {
 					database,
 					collection,
 					query: this.getNodeParameter('query', i) as string,
-					type: this.getNodeParameter('kind', i) as string,
+					...(selectedLayout === 'split' && { type: this.getNodeParameter('kind', i) as string }),
 					mode: 'fast',
 					max_results: this.getNodeParameter('maxResults', i) as number,
 					graph_context: true,
@@ -171,17 +189,36 @@ export class HydraDb implements INodeType {
 				)) as IDataObject;
 				const data = (response.data as IDataObject) || {};
 				const chunks = (data.chunks as IDataObject[]) || [];
+				const unified = isUnified(data);
+				if (unified && !chunks.length && (data.llm_prompt || (data.graph as unknown[])?.length || (data.forceful_relations as unknown[])?.length || data.tabular_data)) {
+					out.push({ json: { ...data, record_type: 'context' }, pairedItem: { item: i } });
+				}
 				for (const chunk of chunks) {
 					out.push({
-						json: { ...chunk, text: extractText(chunk.chunk_content ?? chunk.text) },
+						json: unified
+							? { ...chunk, id: chunk.chunk_id, text: chunk.content, ...roots(data), record_type: 'chunk' }
+							: { ...chunk, text: extractText(chunk.chunk_content ?? chunk.text) },
 						pairedItem: { item: i },
 					});
 				}
+			} else if (selectedLayout === 'unified') {
+				const body = unifiedBody(
+					database, collection, this.getNodeParameter('context', i, ''),
+					this.getNodeParameter('text', i, '') as string,
+					this.getNodeParameter('title', i, 'note') as string, `n8n-${Date.now()}-${i}`,
+				);
+				const response = await this.helpers.httpRequestWithAuthentication.call(
+					this, 'hydraDbApi', { method: 'POST', url: `${baseUrl}/context/ingest`, body, json: true },
+				);
+				out.push({ json: response as IDataObject, pairedItem: { item: i } });
 			} else {
+				if (this.getNodeParameter('context', i, '') !== '') throw new Error('context requires unified layout');
+				const text = this.getNodeParameter('text', i, '') as string;
+				if (!text.trim()) throw new Error('text is required for split ingestion');
 				const item = {
 					id: `n8n-${Date.now()}-${i}`,
 					title: this.getNodeParameter('title', i) as string,
-					content: { text: this.getNodeParameter('text', i) as string },
+					content: { text },
 					infer: true,
 				};
 				const form = new FormData();

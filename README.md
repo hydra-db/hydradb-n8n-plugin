@@ -2,6 +2,9 @@
 
 # n8n-nodes-hydradb
 
+> Unified support is an unpublished rollout preview, not enabled in production.
+> Do not publish, import, or deploy it yet. See [rollout contract and offline tests](UNIFIED_ROLLOUT.md).
+
 An [n8n](https://n8n.io) community node for [HydraDB](https://hydradb.com):
 ingest knowledge and recall context from your workflows. The node is
 dependency-free and uses n8n's built-in HTTP helper.

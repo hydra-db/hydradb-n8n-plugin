@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "data": {
+    "chunks": [{"chunk_id":"c1","context_id":"ctx1","content":"{\"content\":{\"text\":\"literal, not an envelope\"}}","score":0,"enrichment":"separate","received_at":"2026-10-01T00:00:00Z","temporal":[{"content":"dated fact","start_date":null,"end_date":null}],"chunk_metadata":{"row_start":1,"row_end":2}}],
+    "graph": [{"origin":"query_path","triplets":[],"path_summary":"a graph"}],
+    "forceful_relations": [{"via":{"from":"ctx1","to":"ctx2"},"chunk":{"chunk_id":"linked","context_id":"ctx2","content":"linked","score":0}}],
+    "llm_prompt": "  Exact prompt\n\nDo not trim.\n",
+    "tabular_data": null
+  }
+}
